@@ -14,5 +14,5 @@ esim. 21.10.2024, 2h, Cisco Introduction to Cybersecurity → Chapter 2, Quiz do
 | 17.11.2024  | 1 | introduction to the portswigger environment - task   |  portswigger & itslearning  |
 | 18.11.2024  | 1 | Playing with AI   |  lecture recording  |
 | 19.11.2024  | 5 | The booking system project/creating database  | docker  |
-| 18.11.2024  | 3 | The booking system project-testing   |  Visual studio, ZAP, docker  |
+| 20.11.2024  | 6 | The booking system project + testing   |  Visual studio, ZAP, docker  |
 
