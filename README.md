@@ -15,4 +15,5 @@ esim. 21.10.2024, 2h, Cisco Introduction to Cybersecurity → Chapter 2, Quiz do
 | 18.11.2024  | 1 | Playing with AI   |  lecture recording  |
 | 19.11.2024  | 5 | The booking system project/creating database  | docker  |
 | 20.11.2024  | 6 | The booking system project + testing   |  Visual studio, ZAP, docker  |
+| 28.11.2024  | 1,5 | Authentication   |  Lecture recording  |
 
