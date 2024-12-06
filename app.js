@@ -1,67 +1,164 @@
-import { Hono } from "https://deno.land/x/hono/mod.ts";
-import { serveStatic } from "https://deno.land/x/hono/middleware.ts";
+import { serve } from "https://deno.land/std@0.199.0/http/server.ts";
 import { loginUser } from "./routes/login.js";
 import { registerUser } from "./routes/register.js";
+//import { registerResource, getResources } from "./routes/resource.js";
+//import { registerReservation, handleReservationForm } from "./routes/reservation.js";
+import { handleIndex, handleDefaultIndex } from "./routes/indexPage.js";
+import { getSession, destroySession, getCookieValue } from "./sessionService.js"; // For sessions
 
-// Create the Hono app
-const app = new Hono();
+let connectionInfo = {};
+
+// In-memory session store (replace with a database in production)
+const sessionStore = new Map();
 
 // Middleware to set security headers globally
-app.use('*', (c, next) => {
-    // Set the Content-Type header (automatically set by Hono for HTML, CSS, JS)
-    c.header('Content-Type', 'text/html'); // Adjust this based on your content type (text/css, application/javascript, etc.)
+async function addSecurityHeaders(req, handler) {
+    const response = await handler(req);
 
-    c.header(
-        'Content-Security-Policy',
+    // Set security headers
+    response.headers.set("Content-Security-Policy",
         "default-src 'self'; " +
         "script-src 'self'; " +
         "style-src 'self'; " +
         "img-src 'self'; " +
         "frame-ancestors 'none'; " +
-        "form-action 'self';"
-    );
+        "form-action 'self';"); // Allow form submissions only to your domain
+    response.headers.set("X-Frame-Options", "DENY"); // Prevent Clickjacking
+    response.headers.set("X-Content-Type-Options", "nosniff"); // Prevent MIME type sniffing
 
-    // Set X-Frame-Options header to prevent Clickjacking
-    c.header('X-Frame-Options', 'DENY'); // Completely deny embedding
+    return response;
+}
 
-    // Set X-Content-Type-Options header to 'nosniff'
-    c.header('X-Content-Type-Options', 'nosniff');
+// Serve static files
+async function serveStaticFile(path, contentType) {
+    try {
+        const data = await Deno.readFile(path);
+        return new Response(data, {
+            headers: { "Content-Type": contentType },
+        });
+    } catch {
+        return new Response("File not found", { status: 404 });
+    }
+}
 
-    return next();
-});
+// Handle incoming requests
+async function handler(req) {
+    const url = new URL(req.url);
 
+    // Route: Serve static files
+    if (url.pathname.startsWith("/static/")) {
+        const filePath = `.${url.pathname}`;
+        const contentType = getContentType(filePath);
+        return await serveStaticFile(filePath, contentType);
+    }
 
+    // Route: Index page
+    if (url.pathname === "/" && req.method === "GET") {
+        const session = getSession(req);
 
-// Serve static files from the /static directory
-app.use('/static/*', serveStatic({ root: './static' }));
+        if (session) {
+            return await handleIndex(req);
 
-app.get('/', async (c) => {
-    const content = await Deno.readTextFile('./views/index.html');
-    return c.html(content);
-});
+        }
+        return await handleDefaultIndex(req);
+    }
 
-// Serve the login page
-app.get('/login', async (c) => {
-    const content = await Deno.readTextFile('./views/login.html');
-    return c.html(content);
-});
+    // Route: Registration page
+    if (url.pathname === "/register" && req.method === "GET") {
+        return await serveStaticFile("./views/register.html", "text/html");
+    }
 
-// Handle user login
-app.post('/login', loginUser);
+    // Route: Handle user registration
+    if (url.pathname === "/register" && req.method === "POST") {
+        const formData = await req.formData();
+        return await registerUser(formData);
+    }
 
-// Serve the registration page
-app.get('/register', async (c) => {
-    const content = await Deno.readTextFile('./views/register.html');
-    return c.html(content);
-});
+    // Route: Login page
+    if (url.pathname === "/login" && req.method === "GET") {
+        return await serveStaticFile("./views/login.html", "text/html");
+    }
 
-app.post('/register', registerUser);
+    // Route: Handle user login
+    if (url.pathname === "/login" && req.method === "POST") {
+        const formData = await req.formData();
+        return await loginUser(formData, connectionInfo);
+    }
 
-//const PORT = 3000;
-//app.listen({ port: PORT });
-//console.log(`Server running on http://localhost:${PORT}`); 
+    // Route: Handle user log out
+    if (url.pathname === "/logout" && req.method === "GET") {
+        // Destroy session
+        const cookies = req.headers.get("Cookie") || "";
+        const sessionId = getCookieValue(cookies, "session_id");
 
-Deno.serve(app.fetch);
+        if (sessionId) {
+            destroySession(sessionId); // Remove the session from the store
+        }
 
-// Run the app using the command:
-// deno run --allow-net --allow-env --allow-read --watch app.js
+        // Clear the session cookie and redirect to the index page
+        return new Response(null, {
+            status: 302,
+            headers: {
+                Location: "/",
+                "Set-Cookie": "session_id=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0",
+            },
+        });
+    }
+
+    // Route: Resource page
+    if (url.pathname === "/resources" && req.method === "GET") {
+        return await serveStaticFile("./views/resource.html", "text/html");
+    }
+
+    // Route: Handle resources
+    if (url.pathname === "/resources" && req.method === "POST") {
+        const formData = await req.formData();
+        return await registerResource(formData);
+    }
+
+    // Route: Reservations page
+    if (url.pathname === "/reservation" && req.method === "GET") {
+        return await handleReservationForm(req);
+    }
+
+    // Route: List of resources
+    if (url.pathname === "/resourcesList" && req.method === "GET") {
+        return await getResources();
+    }
+
+    // Route: Handle reservations
+    if (url.pathname === "/reservation" && req.method === "POST") {
+        const formData = await req.formData();
+        return await registerReservation(formData);
+    }
+
+    // Default response for unknown routes
+    return new Response("Not Found", { status: 404 });
+}
+
+// Utility: Get content type for static files
+function getContentType(filePath) {
+    const ext = filePath.split(".").pop();
+    const mimeTypes = {
+        html: "text/html",
+        css: "text/css",
+        js: "application/javascript",
+        png: "image/png",
+        jpg: "image/jpeg",
+        jpeg: "image/jpeg",
+        gif: "image/gif",
+        svg: "image/svg+xml",
+        json: "application/json",
+    };
+    return mimeTypes[ext] || "application/octet-stream";
+}
+
+// Start the server with middleware
+async function mainHandler(req, info) {
+    connectionInfo = info;
+    return await addSecurityHeaders(req, handler);
+}
+
+serve(mainHandler, { port: 8000 });
+
+// Run: deno run --allow-net --allow-env --allow-read --watch app.js
