@@ -18,7 +18,13 @@ esim. 21.10.2024, 2h, Cisco Introduction to Cybersecurity → Chapter 2, Quiz do
 | 28.11.2024  | 1,5 | Authentication   |  Lecture recording  |
 | 28.11.2024  | 2 | Zap give some error-messages = update the program.  |  ZAP  |
 | 28.11.2024  | 2 | Watching recordings. Chat gpt: searching for information.  |  Lecture recordings  |
-| 1.11.2024  | 3 | Login page, functionality & vulnerability tests for the login page. Resolving merge-conflicts.    |  Visual studio code, zap, docker, itslearning, chat gpt  |
-| 2.11.2024  | 4 | Index page. Functionality & vulnerability tests for the entire system( index, login, register ). Reports from Zap. Resolve two alerts: Missing Anti-clickjacking Header & X-Content-Type-Options Header Missing.  Link to report before: https://github.com/MarikaKoivu/reimagined-octo-bassoon/blob/main/Index-Login-Registration-21224-Test-1.md . Link to report after: https://github.com/MarikaKoivu/reimagined-octo-bassoon/blob/main/21224-test.md .  = Add both X-Frame-Options and Content-Security-Policy header.      |  Chat gpt, visual studio code, its learning, zap, docker  |
+| 1.12.2024  | 3 | Login page, functionality & vulnerability tests for the login page. Resolving merge-conflicts.    |  Visual studio code, zap, docker, itslearning, chat gpt  |
+| 2.12.2024  | 4 | Index page. Functionality & vulnerability tests for the entire system( index, login, register ). Reports from Zap. Resolve two alerts: Missing Anti-clickjacking Header & X-Content-Type-Options Header Missing.  Link to report before: https://github.com/MarikaKoivu/reimagined-octo-bassoon/blob/main/Index-Login-Registration-21224-Test-1.md . Link to report after: https://github.com/MarikaKoivu/reimagined-octo-bassoon/blob/main/21224-test.md .  = Add both X-Frame-Options and Content-Security-Policy header.      |  Chat gpt, visual studio code, its learning, zap, docker  |
+| 7.12.2024  | 3 | Reflections with classmates, chat gpt: searching for information.  |  chat gpt, google  |
+| 7.12.2024  | 2 | Watching recording: lecture authorization  |  Lecture recordings  |
+| 7.12.2024  | 2 | Watching recordings: workshop  |  Lecture recordings  |
+| 8.12.2024  | 2 | The booking system project, phase 3. (unfinished)  |  Visual Studio code, chat gpt, its learning, zap, docker  |
+| 15.12.2024  | 2,5 | Labs: password reset broken logic, SQL injection vulnerability allowing login bypass & unprotected admin functionality  |  PortsWigger  |
+
 
 
